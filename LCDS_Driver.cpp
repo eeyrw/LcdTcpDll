@@ -11,6 +11,11 @@ static char result_str[80]="";
 static unsigned char Buf[64];
 int cnt;
 BOOL T_OK;
+bool globalConnStatus=false;
+    int IP_Array[4];
+    uint32_t u32_IP;
+    uint32_t portNum;
+
 
 
 // driver name
@@ -44,10 +49,39 @@ uint8_t* GetCmdDataPtr(void)
 
 BOOL SendDataTcp(void)
 {
-    Buf[0]='n';
+    BOOL status=FALSE;
+        Buf[0]='n';
     Buf[1]='w';
-    return SendToServer(Buf,64);
+    if(globalConnStatus)
+    {
+        status=SendToServer(Buf,64);
+    }
+    if(status!=TRUE)
+    {
+        globalConnStatus=false;
+    }
+
+    return status;
 }
+
+VOID CALLBACK DeamonProc(
+       HWND hWnd, // handle of window for timer messages
+       UINT uMsg, // WM_TIMER message
+       UINT idEvent, // timer identifier
+       DWORD dwTime // current system time
+       )
+{
+    if(globalConnStatus!=TRUE)
+    {
+
+            GetLocalIP();
+
+    if (Connect(u32_IP,portNum)) //initalize winsocks
+        globalConnStatus=TRUE; //failed
+    }
+ return;
+}
+
 //Function: DISPLAYDLL_Init
 //
 //Parameters: SizeX,SizeY : byte; StartupParameters : pchar; OK : pboolean;
@@ -66,9 +100,7 @@ BOOL SendDataTcp(void)
 DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *startup_parameters,LCDS_BOOL *ok)
 {
 
-    int IP_Array[4];
-    uint32_t u32_IP;
-    uint32_t portNum;
+
     BOOL Result=true;
 
     sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
@@ -80,6 +112,7 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
         Result=false; //failed
 
 
+SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
 
     d1printf("The Init para:%s",startup_parameters);
 
@@ -90,6 +123,7 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
     }
     else
     {
+        globalConnStatus=true;
         rows = size_y;
         columns = size_x;
 

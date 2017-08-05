@@ -460,7 +460,8 @@ BOOL SendToServer(uint8_t* Buf,uint32_t u32_Len)
 
 	case WSA_IO_PENDING:
 		d1printf("WSA_IO_PENDING -> Error: A previous Send operation is still pending. This data will not be sent.\n");
-		return TRUE;
+		CloseSockets();
+		return FALSE;
 
 	default:
 		d1printf("%s -> Error ",GetErrMsg(u32_Err).c_str());
