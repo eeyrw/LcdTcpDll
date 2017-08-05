@@ -1,0 +1,79 @@
+# depslib dependency file v1.0
+1393059613 source:e:\lcd_tcp_mingw_dll\debug_output.cpp
+	"debug.h"
+
+1393076181 e:\lcd_tcp_mingw_dll\debug.h
+	<windows.h>
+	<stdio.h>
+
+1392978362 source:e:\lcd_tcp_mingw_dll\socket.cpp
+	"Socket.h"
+
+1393051362 e:\lcd_tcp_mingw_dll\socket.h
+	<winsock2.h>
+	<windows.h>
+	<stdio.h>
+
+1393074356 source:e:\lcd_tcp_mingw_dll\socketapp.cpp
+	"SocketApp.h"
+
+1393062606 e:\lcd_tcp_mingw_dll\socketapp.h
+	<iostream>
+	<cstdio>
+	<windows.h>
+	"Socket.h"
+	<string>
+	<cstdarg>
+	"debug.h"
+
+1393074823 source:e:\lcd_tcp_mingw_dll\lcds_driver.cpp
+	<cstdio>
+	"LCDS_Driver.H"
+	<windows.h>
+	<stdlib.h>
+	"Socket.h"
+	"debug.h"
+	"SocketApp.h"
+
+1393068025 e:\lcd_tcp_mingw_dll\lcds_driver.h
+	<stdint.h>
+
+1393059613 source:e:\general project\lcd_tcp_mingw_dll\debug_output.cpp
+	"debug.h"
+
+1393076181 e:\general project\lcd_tcp_mingw_dll\debug.h
+	<windows.h>
+	<stdio.h>
+
+1393074823 source:e:\general project\lcd_tcp_mingw_dll\lcds_driver.cpp
+	<cstdio>
+	"LCDS_Driver.H"
+	<windows.h>
+	<stdlib.h>
+	"Socket.h"
+	"debug.h"
+	"SocketApp.h"
+
+1393068025 e:\general project\lcd_tcp_mingw_dll\lcds_driver.h
+	<stdint.h>
+
+1393051362 e:\general project\lcd_tcp_mingw_dll\socket.h
+	<winsock2.h>
+	<windows.h>
+	<stdio.h>
+
+1393062606 e:\general project\lcd_tcp_mingw_dll\socketapp.h
+	<iostream>
+	<cstdio>
+	<windows.h>
+	"Socket.h"
+	<string>
+	<cstdarg>
+	"debug.h"
+
+1392978362 source:e:\general project\lcd_tcp_mingw_dll\socket.cpp
+	"Socket.h"
+
+1393074356 source:e:\general project\lcd_tcp_mingw_dll\socketapp.cpp
+	"SocketApp.h"
+
