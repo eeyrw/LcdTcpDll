@@ -14,12 +14,12 @@ BOOL T_OK;
 
 
 // driver name
-#define DefaultParameters "192.168.1.4"
+#define DefaultParameters "192.168.1.4:2400"
 
-#define DRIVER_NAME "LCD Smartie DLL TCP mingw"
+#define DRIVER_NAME "LCD Smartie DLL TCP mingw dev"
 
 // usage
-#define USAGE "IP address like:192.168.1.4"
+#define USAGE "IP address like:192.168.1.4:2400"
 
 
 #define CMD_LCD_INIT 0x01
@@ -32,14 +32,20 @@ BOOL T_OK;
 #define CMD_LCD_WRITECMD 0x08
 #define CMD_LCD_CLOSE 0x09
 
-
+#define OFFEST_CMD_DATA 2
 
 static int rows = 0, columns = 0;
 static int xpos = 0, ypos = 0;
 
+uint8_t* GetCmdDataPtr(void)
+{
+    return (uint8_t*)(&Buf[OFFEST_CMD_DATA]);
+}
 
 BOOL SendDataTcp(void)
 {
+    Buf[0]='n';
+    Buf[1]='w';
     return SendToServer(Buf,64);
 }
 //Function: DISPLAYDLL_Init
@@ -62,14 +68,15 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
 
     int IP_Array[4];
     uint32_t u32_IP;
+    uint32_t portNum;
     BOOL Result=true;
 
-    sscanf(startup_parameters,"%d.%d.%d.%d",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3]);
+    sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
     u32_IP=GetIP_U32(IP_Array[0],IP_Array[1],IP_Array[2],IP_Array[3]);
 
     GetLocalIP();
 
-    if (!Connect(u32_IP,2400)) //initalize winsocks
+    if (!Connect(u32_IP,portNum)) //initalize winsocks
         Result=false; //failed
 
 
@@ -85,9 +92,11 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
     {
         rows = size_y;
         columns = size_x;
-        Buf[0]=CMD_LCD_INIT;
-        Buf[1]=columns;
-        Buf[2]=rows;
+
+        uint8_t* cmdBuf=GetCmdDataPtr();
+        cmdBuf[0]=CMD_LCD_INIT;
+        cmdBuf[1]=columns;
+        cmdBuf[2]=rows;
         Sleep(100);
         SendDataTcp();
         *ok=TRUE;
@@ -162,9 +171,10 @@ DLL_EXPORT(char *) DISPLAYDLL_DefaultParameters(void)
 
 DLL_EXPORT(void) DISPLAYDLL_SetPosition(LCDS_BYTE x,LCDS_BYTE y)
 {
-    Buf[0]=CMD_LCD_SETCURSOR;
-    Buf[1]=x-1;
-    Buf[2]=y-1;
+    uint8_t* cmdBuf=GetCmdDataPtr();
+    cmdBuf[0]=CMD_LCD_SETCURSOR;
+    cmdBuf[1]=x-1;
+    cmdBuf[2]=y-1;
     xpos = x-1;
     ypos = y-1;
     SendDataTcp();
@@ -185,7 +195,8 @@ DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
 {
     int i;
 
-    Buf[0]=CMD_LCD_WRITEDATA;
+uint8_t* cmdBuf=GetCmdDataPtr();
+    cmdBuf[0]=CMD_LCD_WRITEDATA;
 
     for(i=0; i<columns; i++)
     {
@@ -194,7 +205,7 @@ DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
         //if((*str)==0)
         //	break;
 
-        Buf[i+2]=(*str);
+        cmdBuf[i+2]=(*str);
 
 
         //switch (Buf[i+2]) {
@@ -212,8 +223,8 @@ DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
         str++;
 
     }
-    d1printf("WriteData with %s",&Buf[2]);
-    Buf[1]=i;
+    d1printf("WriteData with %s",&cmdBuf[2]);
+    cmdBuf[1]=i;
     SendDataTcp();
 
 
@@ -234,9 +245,9 @@ DLL_EXPORT(void) DISPLAYDLL_SetBrightness(LCDS_BYTE brightness)
 {
 
     d1printf("SetBrightness with %d!",brightness);
-
-    Buf[0]=CMD_LCD_SETBRIGHTNESS;
-    Buf[1]=brightness;
+uint8_t* cmdBuf=GetCmdDataPtr();
+    cmdBuf[0]=CMD_LCD_SETBRIGHTNESS;
+    cmdBuf[1]=brightness;
     SendDataTcp();
 }
 
@@ -255,13 +266,14 @@ DLL_EXPORT(void) DISPLAYDLL_SetBrightness(LCDS_BYTE brightness)
 DLL_EXPORT(void) DISPLAYDLL_CustomChar(LCDS_BYTE chr,LCDS_BYTE *data)
 {
     int i;
-    Buf[0]=CMD_LCD_CUSTOMCHAR;
-    Buf[1]=chr-1;
+    uint8_t* cmdBuf=GetCmdDataPtr();
+    cmdBuf[0]=CMD_LCD_CUSTOMCHAR;
+    cmdBuf[1]=chr-1;
     for(i=0; i<8; i++)
     {
 
 
-        Buf[i+2]=(*data);
+        cmdBuf[i+2]=(*data);
         data++;
     }
     SendDataTcp();
@@ -308,7 +320,8 @@ DLL_EXPORT(LCDS_BYTE) DISPLAYDLL_CustomCharIndex(LCDS_BYTE index)
 DLL_EXPORT(void) DISPLAYDLL_Done(void)
 {
     d1printf("Call DISPLAYDLL_Done!");
-    Buf[0]=CMD_LCD_CLOSE;
+    uint8_t* cmdBuf=GetCmdDataPtr();
+    cmdBuf[0]=CMD_LCD_CLOSE;
     SendDataTcp();
 
 }
@@ -345,8 +358,9 @@ DLL_EXPORT(void) DISPLAYDLL_SetBacklight(LCDS_BOOL light_on)
 {
 
     d1printf("SetBacklight with %d!",light_on);
-    Buf[0]=CMD_LCD_SETBACKLIGHT;
-    Buf[1]=light_on;
+    uint8_t* cmdBuf=GetCmdDataPtr();
+    cmdBuf[0]=CMD_LCD_SETBACKLIGHT;
+    cmdBuf[1]=light_on;
 
     SendDataTcp();
 }
@@ -365,8 +379,9 @@ DLL_EXPORT(void) DISPLAYDLL_SetContrast(LCDS_BYTE contrast)
 {
 
     d1printf("SetContrast with %d!",contrast);
-    Buf[0]=CMD_LCD_SETCONTRAST;
-    Buf[1]=contrast;
+    uint8_t* cmdBuf=GetCmdDataPtr();
+    cmdBuf[0]=CMD_LCD_SETCONTRAST;
+    cmdBuf[1]=contrast;
     SendDataTcp();
 }
 
