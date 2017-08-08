@@ -208,6 +208,10 @@ DWORD TCP::cSocket::CreateSocket()
 		return u32_Error;
 	}
 
+	DWORD value = 1;
+setsockopt( h_Socket, IPPROTO_TCP, TCP_NODELAY, (char*)&value, sizeof( value ) );
+
+
 	mi_List.Add(h_Socket, h_Event);
 	return 0;
 }
