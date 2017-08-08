@@ -6,6 +6,24 @@
 #include "debug.h"
 #include "SocketApp.h"
 
+typedef struct _LCD_INIT_DATA
+{
+    char paramStr[512];
+    int sizeX;
+    int sizeY;
+    char customChar[8][8];
+
+
+}LCD_INIT_DATA;
+
+VOID CALLBACK DeamonProc(
+       HWND hWnd, // handle of window for timer messages
+       UINT uMsg, // WM_TIMER message
+       UINT idEvent, // timer identifier
+       DWORD dwTime // current system time
+       );
+
+static LCD_INIT_DATA gLcdInitData;
 
 static char result_str[80]="";
 static unsigned char Buf[64];
@@ -47,6 +65,8 @@ uint8_t* GetCmdDataPtr(void)
     return (uint8_t*)(&Buf[OFFEST_CMD_DATA]);
 }
 
+
+
 BOOL SendDataTcp(void)
 {
     BOOL status=FALSE;
@@ -64,23 +84,7 @@ BOOL SendDataTcp(void)
     return status;
 }
 
-VOID CALLBACK DeamonProc(
-       HWND hWnd, // handle of window for timer messages
-       UINT uMsg, // WM_TIMER message
-       UINT idEvent, // timer identifier
-       DWORD dwTime // current system time
-       )
-{
-    if(globalConnStatus!=TRUE)
-    {
 
-            GetLocalIP();
-
-    if (Connect(u32_IP,portNum)) //initalize winsocks
-        globalConnStatus=TRUE; //failed
-    }
- return;
-}
 
 //Function: DISPLAYDLL_Init
 //
@@ -103,13 +107,21 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
 
     BOOL Result=true;
 
+strcpy(gLcdInitData.paramStr, startup_parameters);
     sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
     u32_IP=GetIP_U32(IP_Array[0],IP_Array[1],IP_Array[2],IP_Array[3]);
 
     GetLocalIP();
 
     if (!Connect(u32_IP,portNum)) //initalize winsocks
-        Result=false; //failed
+    {
+        Sleep(100);
+        if (!Connect(u32_IP,portNum))
+        {
+            Result=false; //failed
+        }
+    }
+
 
 
 SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
@@ -125,7 +137,9 @@ SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
     {
         globalConnStatus=true;
         rows = size_y;
+        gLcdInitData.sizeY=size_y;
         columns = size_x;
+        gLcdInitData.sizeX=size_x;
 
         uint8_t* cmdBuf=GetCmdDataPtr();
         cmdBuf[0]=CMD_LCD_INIT;
@@ -306,7 +320,7 @@ DLL_EXPORT(void) DISPLAYDLL_CustomChar(LCDS_BYTE chr,LCDS_BYTE *data)
     for(i=0; i<8; i++)
     {
 
-
+        gLcdInitData.customChar[cmdBuf[1]][i]=(*data);
         cmdBuf[i+2]=(*data);
         data++;
     }
@@ -464,6 +478,38 @@ DLL_EXPORT(void) DISPLAYDLL_SetFan(LCDS_BYTE t1,LCDS_BYTE t2)
     d1printf("Call DISPLAYDLL_ReadKey");
 }
 
+bool ReInitLcd(void)
+{
+    LCDS_BOOL res=FALSE;
+    DISPLAYDLL_Init(gLcdInitData.sizeX,gLcdInitData.sizeY,gLcdInitData.paramStr,&res);
+    if(!res)
+    {
+        return false;
+    }
+    for(int i=0;i<8;i++)
+    {
+        DISPLAYDLL_CustomChar(i+1,(LCDS_BYTE*)&gLcdInitData.customChar[i][0]);
+    }
+    return true;
+
+}
+
+VOID CALLBACK DeamonProc(
+       HWND hWnd, // handle of window for timer messages
+       UINT uMsg, // WM_TIMER message
+       UINT idEvent, // timer identifier
+       DWORD dwTime // current system time
+       )
+{
+    if(globalConnStatus!=TRUE)
+    {
+        if(ReInitLcd())
+        {
+            globalConnStatus=TRUE;
+        }
+    }
+ return;
+}
 
 extern "C" BOOL WINAPI DllMain(
   HINSTANCE hinstDLL,
