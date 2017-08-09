@@ -11,7 +11,14 @@ typedef struct _LCD_INIT_DATA
     char paramStr[512];
     int sizeX;
     int sizeY;
+    int curosrX;
+    int curosrY;
     char customChar[8][8];
+    char currentLcdContent[4][40];
+    unsigned char backLightOnOff;
+    unsigned char contrastLevel;
+    unsigned char brightnessLevel;
+
 
 
 }LCD_INIT_DATA;
@@ -57,8 +64,6 @@ bool globalConnStatus=false;
 
 #define OFFEST_CMD_DATA 2
 
-static int rows = 0, columns = 0;
-static int xpos = 0, ypos = 0;
 
 uint8_t* GetCmdDataPtr(void)
 {
@@ -136,21 +141,19 @@ SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
     else
     {
         globalConnStatus=true;
-        rows = size_y;
         gLcdInitData.sizeY=size_y;
-        columns = size_x;
         gLcdInitData.sizeX=size_x;
 
         uint8_t* cmdBuf=GetCmdDataPtr();
         cmdBuf[0]=CMD_LCD_INIT;
-        cmdBuf[1]=columns;
-        cmdBuf[2]=rows;
+        cmdBuf[1]=gLcdInitData.sizeX;
+        cmdBuf[2]=gLcdInitData.sizeY;
         Sleep(100);
         SendDataTcp();
         *ok=TRUE;
 
         d1printf("Success to open device!");
-        d1printf("LCD size:x=%d,y=%d.",columns,rows);
+        d1printf("LCD size:x=%d,y=%d.",gLcdInitData.sizeX,gLcdInitData.sizeY);
 
     }
 
@@ -223,10 +226,10 @@ DLL_EXPORT(void) DISPLAYDLL_SetPosition(LCDS_BYTE x,LCDS_BYTE y)
     cmdBuf[0]=CMD_LCD_SETCURSOR;
     cmdBuf[1]=x-1;
     cmdBuf[2]=y-1;
-    xpos = x-1;
-    ypos = y-1;
+    gLcdInitData.curosrX=x;
+    gLcdInitData.curosrY=y;
     SendDataTcp();
-    d1printf("SetPosition with x=%d,y=%d!",xpos,ypos);
+    d1printf("SetPosition with x=%d,y=%d!",gLcdInitData.curosrX-1,gLcdInitData.curosrY-1);
 }
 
 //Function: DISPLAYDLL_Write
@@ -246,13 +249,13 @@ DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
 uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_WRITEDATA;
 
-    for(i=0; i<columns; i++)
+    for(i=0; i<gLcdInitData.sizeX; i++)
     {
 
 
         //if((*str)==0)
         //	break;
-
+        gLcdInitData.currentLcdContent[gLcdInitData.curosrY-1][i+gLcdInitData.curosrX-1]=(*str);
         cmdBuf[i+2]=(*str);
 
 
@@ -293,6 +296,7 @@ DLL_EXPORT(void) DISPLAYDLL_SetBrightness(LCDS_BYTE brightness)
 {
 
     d1printf("SetBrightness with %d!",brightness);
+    gLcdInitData.brightnessLevel=brightness;
 uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_SETBRIGHTNESS;
     cmdBuf[1]=brightness;
@@ -406,10 +410,10 @@ DLL_EXPORT(void) DISPLAYDLL_SetBacklight(LCDS_BOOL light_on)
 {
 
     d1printf("SetBacklight with %d!",light_on);
+    gLcdInitData.backLightOnOff=light_on;
     uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_SETBACKLIGHT;
     cmdBuf[1]=light_on;
-
     SendDataTcp();
 }
 
@@ -427,6 +431,7 @@ DLL_EXPORT(void) DISPLAYDLL_SetContrast(LCDS_BYTE contrast)
 {
 
     d1printf("SetContrast with %d!",contrast);
+    gLcdInitData.contrastLevel=contrast;
     uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_SETCONTRAST;
     cmdBuf[1]=contrast;
@@ -490,6 +495,18 @@ bool ReInitLcd(void)
     {
         DISPLAYDLL_CustomChar(i+1,(LCDS_BYTE*)&gLcdInitData.customChar[i][0]);
     }
+
+    for(int i=0;i<gLcdInitData.sizeY;i++)
+    {
+        DISPLAYDLL_SetPosition(1,i+1);
+        DISPLAYDLL_Write(&gLcdInitData.currentLcdContent[i][0]);
+    }
+
+    DISPLAYDLL_SetContrast(gLcdInitData.contrastLevel);
+    DISPLAYDLL_SetBacklight(gLcdInitData.backLightOnOff);
+    DISPLAYDLL_SetBrightness(gLcdInitData.brightnessLevel);
+
+
     return true;
 
 }
