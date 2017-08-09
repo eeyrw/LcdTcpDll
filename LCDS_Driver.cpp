@@ -21,25 +21,25 @@ typedef struct _LCD_INIT_DATA
 
 
 
-}LCD_INIT_DATA;
+} LCD_INIT_DATA;
 
 VOID CALLBACK DeamonProc(
-       HWND hWnd, // handle of window for timer messages
-       UINT uMsg, // WM_TIMER message
-       UINT idEvent, // timer identifier
-       DWORD dwTime // current system time
-       );
+    HWND hWnd, // handle of window for timer messages
+    UINT uMsg, // WM_TIMER message
+    UINT idEvent, // timer identifier
+    DWORD dwTime // current system time
+);
 
 static LCD_INIT_DATA gLcdInitData;
 
 static char result_str[80]="";
-static unsigned char Buf[64];
-int cnt;
-BOOL T_OK;
+static unsigned char Buf[256];
+
+
 bool globalConnStatus=false;
-    int IP_Array[4];
-    uint32_t u32_IP;
-    uint32_t portNum;
+int IP_Array[4];
+uint32_t u32_IP;
+uint32_t portNum;
 
 
 
@@ -62,7 +62,7 @@ bool globalConnStatus=false;
 #define CMD_LCD_WRITECMD 0x08
 #define CMD_LCD_CLOSE 0x09
 
-#define OFFEST_CMD_DATA 2
+#define OFFEST_CMD_DATA 3
 
 
 uint8_t* GetCmdDataPtr(void)
@@ -72,14 +72,16 @@ uint8_t* GetCmdDataPtr(void)
 
 
 
-BOOL SendDataTcp(void)
+
+BOOL SendDataTcp(uint32_t len)
 {
     BOOL status=FALSE;
-        Buf[0]='n';
-    Buf[1]='w';
+    if((len<2)||(len>64))
+        return FALSE;
+
     if(globalConnStatus)
     {
-        status=SendToServer(Buf,64);
+        status=SendToServer(Buf,len);
     }
     if(status!=TRUE)
     {
@@ -89,7 +91,13 @@ BOOL SendDataTcp(void)
     return status;
 }
 
-
+bool SendCmdData(uint32_t cmdDataLen)
+{
+    Buf[0]='n';
+    Buf[1]='w';
+    Buf[2]=cmdDataLen;
+    SendDataTcp(cmdDataLen+OFFEST_CMD_DATA);
+}
 
 //Function: DISPLAYDLL_Init
 //
@@ -112,7 +120,7 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
 
     BOOL Result=true;
 
-strcpy(gLcdInitData.paramStr, startup_parameters);
+    strcpy(gLcdInitData.paramStr, startup_parameters);
     sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
     u32_IP=GetIP_U32(IP_Array[0],IP_Array[1],IP_Array[2],IP_Array[3]);
 
@@ -129,7 +137,7 @@ strcpy(gLcdInitData.paramStr, startup_parameters);
 
 
 
-SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
+    SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
 
     d1printf("The Init para:%s",startup_parameters);
 
@@ -149,7 +157,7 @@ SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
         cmdBuf[1]=gLcdInitData.sizeX;
         cmdBuf[2]=gLcdInitData.sizeY;
         Sleep(100);
-        SendDataTcp();
+        SendCmdData(3);
         *ok=TRUE;
 
         d1printf("Success to open device!");
@@ -228,7 +236,7 @@ DLL_EXPORT(void) DISPLAYDLL_SetPosition(LCDS_BYTE x,LCDS_BYTE y)
     cmdBuf[2]=y-1;
     gLcdInitData.curosrX=x;
     gLcdInitData.curosrY=y;
-    SendDataTcp();
+    SendCmdData(3);
     d1printf("SetPosition with x=%d,y=%d!",gLcdInitData.curosrX-1,gLcdInitData.curosrY-1);
 }
 
@@ -246,7 +254,7 @@ DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
 {
     int i;
 
-uint8_t* cmdBuf=GetCmdDataPtr();
+    uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_WRITEDATA;
 
     for(i=0; i<gLcdInitData.sizeX; i++)
@@ -276,7 +284,7 @@ uint8_t* cmdBuf=GetCmdDataPtr();
     }
     d1printf("WriteData with %s",&cmdBuf[2]);
     cmdBuf[1]=i;
-    SendDataTcp();
+    SendCmdData(3+gLcdInitData.sizeX);
 
 
 }
@@ -297,10 +305,10 @@ DLL_EXPORT(void) DISPLAYDLL_SetBrightness(LCDS_BYTE brightness)
 
     d1printf("SetBrightness with %d!",brightness);
     gLcdInitData.brightnessLevel=brightness;
-uint8_t* cmdBuf=GetCmdDataPtr();
+    uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_SETBRIGHTNESS;
     cmdBuf[1]=brightness;
-    SendDataTcp();
+    SendCmdData(2);
 }
 
 //Function: DISPLAYDLL_CustomChar
@@ -328,7 +336,7 @@ DLL_EXPORT(void) DISPLAYDLL_CustomChar(LCDS_BYTE chr,LCDS_BYTE *data)
         cmdBuf[i+2]=(*data);
         data++;
     }
-    SendDataTcp();
+    SendCmdData(10);
 
 }
 
@@ -374,7 +382,7 @@ DLL_EXPORT(void) DISPLAYDLL_Done(void)
     d1printf("Call DISPLAYDLL_Done!");
     uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_CLOSE;
-    SendDataTcp();
+    SendCmdData(1);
 
 }
 
@@ -414,7 +422,7 @@ DLL_EXPORT(void) DISPLAYDLL_SetBacklight(LCDS_BOOL light_on)
     uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_SETBACKLIGHT;
     cmdBuf[1]=light_on;
-    SendDataTcp();
+    SendCmdData(2);
 }
 
 //Function: DISPLAYDLL_SetContrast
@@ -435,7 +443,7 @@ DLL_EXPORT(void) DISPLAYDLL_SetContrast(LCDS_BYTE contrast)
     uint8_t* cmdBuf=GetCmdDataPtr();
     cmdBuf[0]=CMD_LCD_SETCONTRAST;
     cmdBuf[1]=contrast;
-    SendDataTcp();
+    SendCmdData(2);
 }
 
 
@@ -491,12 +499,12 @@ bool ReInitLcd(void)
     {
         return false;
     }
-    for(int i=0;i<8;i++)
+    for(int i=0; i<8; i++)
     {
         DISPLAYDLL_CustomChar(i+1,(LCDS_BYTE*)&gLcdInitData.customChar[i][0]);
     }
 
-    for(int i=0;i<gLcdInitData.sizeY;i++)
+    for(int i=0; i<gLcdInitData.sizeY; i++)
     {
         DISPLAYDLL_SetPosition(1,i+1);
         DISPLAYDLL_Write(&gLcdInitData.currentLcdContent[i][0]);
@@ -512,11 +520,11 @@ bool ReInitLcd(void)
 }
 
 VOID CALLBACK DeamonProc(
-       HWND hWnd, // handle of window for timer messages
-       UINT uMsg, // WM_TIMER message
-       UINT idEvent, // timer identifier
-       DWORD dwTime // current system time
-       )
+    HWND hWnd, // handle of window for timer messages
+    UINT uMsg, // WM_TIMER message
+    UINT idEvent, // timer identifier
+    DWORD dwTime // current system time
+)
 {
     if(globalConnStatus!=TRUE)
     {
@@ -525,13 +533,13 @@ VOID CALLBACK DeamonProc(
             globalConnStatus=TRUE;
         }
     }
- return;
+    return;
 }
 
 extern "C" BOOL WINAPI DllMain(
-  HINSTANCE hinstDLL,
-  DWORD fdwReason,
-  LPVOID lpvReserved
+    HINSTANCE hinstDLL,
+    DWORD fdwReason,
+    LPVOID lpvReserved
 )
 {
     switch(fdwReason)
@@ -539,13 +547,13 @@ extern "C" BOOL WINAPI DllMain(
     case 1:
         d1printf("DLL_PROCESS_ATTACH");
         break;
-            case 0:
+    case 0:
         d1printf("DLL_PROCESS_DETACH");
         break;
-            case 2:
+    case 2:
         d1printf("DLL_THREAD_ATTACH");
         break;
-            case 3:
+    case 3:
         d1printf("DLL_THREAD_DETACH");
         break;
     }
