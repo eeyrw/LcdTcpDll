@@ -2,9 +2,8 @@
 #include "LCDS_Driver.H"
 #include <windows.h>
 #include <stdlib.h>
-#include "Socket.h"
 #include "debug.h"
-#include "SocketApp.h"
+#include "tcp.h"
 
 typedef struct _LCD_INIT_DATA
 {
@@ -75,15 +74,15 @@ uint8_t* GetCmdDataPtr(void)
 
 BOOL SendDataTcp(uint32_t len)
 {
-    BOOL status=FALSE;
+    int status=-1;
     if((len<2)||(len>64))
         return FALSE;
 
     if(globalConnStatus)
     {
-        status=SendToServer(Buf,len);
+        status=TcpSendData((char*)Buf,len);
     }
-    if(status!=TRUE)
+    if(status<0)
     {
         globalConnStatus=false;
     }
@@ -124,15 +123,10 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
     sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
     u32_IP=GetIP_U32(IP_Array[0],IP_Array[1],IP_Array[2],IP_Array[3]);
 
-    GetLocalIP();
 
-    if (!Connect(u32_IP,portNum)) //initalize winsocks
+    if (!TcpInit(u32_IP,portNum)) //initalize winsocks
     {
-        Sleep(100);
-        if (!Connect(u32_IP,portNum))
-        {
-            Result=false; //failed
-        }
+        Result=false; //failed
     }
 
 
