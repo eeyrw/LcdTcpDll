@@ -1,2 +1,6 @@
 *.o
 *.dll
+/bin
+/obj
+*.layout
+*.depend
