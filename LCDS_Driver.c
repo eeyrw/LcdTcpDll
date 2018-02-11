@@ -45,10 +45,10 @@ uint32_t portNum;
 // driver name
 #define DefaultParameters "192.168.1.134:2400"
 
-#define DRIVER_NAME "LCD Smartie DLL UDP mingw dev"
+#define DRIVER_NAME "LCD Smartie DLL UDP MSVC dev"
 
 // usage
-#define USAGE "IP address like:192.168.1.4:2400"
+#define USAGE "IP address like:192.168.1.134:2400"
 
 
 #define CMD_LCD_INIT 0x01
@@ -62,6 +62,7 @@ uint32_t portNum;
 #define CMD_LCD_CLOSE 0x09
 
 #define OFFEST_CMD_DATA 3
+#define OFFEST_DATA_CRC_LEN 2
 
 
 uint8_t* GetCmdDataPtr(void)
@@ -69,7 +70,19 @@ uint8_t* GetCmdDataPtr(void)
     return (uint8_t*)(&Buf[OFFEST_CMD_DATA]);
 }
 
+unsigned short crc16(const unsigned char *data_p, unsigned char length)
+{
+	unsigned char x;
+	unsigned short crc = 0xFFFF;
 
+	while (length--)
+	{
+		x = crc >> 8 ^ *data_p++;
+		x ^= x >> 4;
+		crc = (crc << 8) ^ ((unsigned short)(x << 12)) ^ ((unsigned short)(x << 5)) ^ ((unsigned short)x);
+	}
+	return crc;
+}
 
 
 BOOL SendDataTcp(uint32_t len)
@@ -77,7 +90,9 @@ BOOL SendDataTcp(uint32_t len)
     int status=0;
     if((len<2)||(len>64))
         return FALSE;
-
+	uint16_t crc = crc16(Buf + OFFEST_CMD_DATA, len - OFFEST_CMD_DATA - OFFEST_DATA_CRC_LEN);
+	Buf[len - 2] = crc & 0xFF;
+	Buf[len - 1] = (crc >> 8) & 0xFF;
     if(globalConnStatus)
     {
         status=SendUdpData((char*)Buf,len);
@@ -94,8 +109,8 @@ int SendCmdData(uint32_t cmdDataLen)
 {
     Buf[0]='n';
     Buf[1]='w';
-    Buf[2]=cmdDataLen;
-    SendDataTcp(cmdDataLen+OFFEST_CMD_DATA);
+    Buf[2]=cmdDataLen+ OFFEST_DATA_CRC_LEN;
+    SendDataTcp(cmdDataLen+OFFEST_CMD_DATA+ OFFEST_DATA_CRC_LEN);
 }
 
 //Function: DISPLAYDLL_Init

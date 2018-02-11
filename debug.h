@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <stdio.h>
 
-#define DEBUG_LEVEL_1_EN
+//#define DEBUG_LEVEL_1_EN
 //#define DEBUG_LEVEL_2_EN
 
 #ifdef DEBUG_LEVEL_1_EN
