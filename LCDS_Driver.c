@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <stdio.h>
 #include "LCDS_Driver.H"
 #include <windows.h>
 #include <stdlib.h>
@@ -35,7 +35,7 @@ static char result_str[80]="";
 static unsigned char Buf[256];
 
 
-bool globalConnStatus=false;
+int globalConnStatus=-1;
 int IP_Array[4];
 uint32_t u32_IP;
 uint32_t portNum;
@@ -43,12 +43,12 @@ uint32_t portNum;
 
 
 // driver name
-#define DefaultParameters "192.168.1.4:2400"
+#define DefaultParameters "192.168.1.134:2400"
 
-#define DRIVER_NAME "LCD Smartie DLL TCP mingw dev"
+#define DRIVER_NAME "LCD Smartie DLL TCP mingw"
 
 // usage
-#define USAGE "IP address like:192.168.1.4:2400"
+#define USAGE "IP address like:192.168.1.134:2400"
 
 
 #define CMD_LCD_INIT 0x01
@@ -76,7 +76,7 @@ BOOL SendDataTcp(uint32_t len)
 {
     int status=-1;
     if((len<2)||(len>64))
-        return FALSE;
+        return -1;
 
     if(globalConnStatus)
     {
@@ -84,23 +84,23 @@ BOOL SendDataTcp(uint32_t len)
     }
     if(status<0)
     {
-        globalConnStatus=false;
+        globalConnStatus=-1;
     }
 
     return status;
 }
 
-bool SendCmdData(uint32_t cmdDataLen)
+int SendCmdData(uint32_t cmdDataLen)
 {
     Buf[0]='n';
     Buf[1]='w';
     Buf[2]=cmdDataLen;
-    SendDataTcp(cmdDataLen+OFFEST_CMD_DATA);
+    return SendDataTcp(cmdDataLen+OFFEST_CMD_DATA);
 }
 
 //Function: DISPLAYDLL_Init
 //
-//Parameters: SizeX,SizeY : byte; StartupParameters : pchar; OK : pboolean;
+//Parameters: SizeX,SizeY : byte; StartupParameters : pchar; OK : pintean;
 //
 //Result: none
 //
@@ -108,16 +108,16 @@ bool SendCmdData(uint32_t cmdDataLen)
 //or comes back from standby. First two parameters are bytes that describe the
 //size that LCD Smartie believes the display to be, the third parameter are the
 //startup parameters as a null terminated string, and the fourth parameter is a
-//pointer to a boolean that the DLL can use to pass back success or failure of
+//pointer to a intean that the DLL can use to pass back success or failure of
 //DLL startup. (For example, if the calling application, LCD Smartie, wants the
-//driver to start a COM port that doesn't exist, pass back false to indicate the
+//driver to start a COM port that doesn't exist, pass back -1 to indicate the
 //start of the COM port failed).
 
 DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *startup_parameters,LCDS_BOOL *ok)
 {
 
 
-    BOOL Result=true;
+    BOOL Result=1;
 
     strcpy(gLcdInitData.paramStr, startup_parameters);
     sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
@@ -126,7 +126,7 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
 
     if (!TcpInit(u32_IP,portNum)) //initalize winsocks
     {
-        Result=false; //failed
+        Result=-1; //failed
     }
 
 
@@ -135,14 +135,14 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
 
     d1printf("The Init para:%s",startup_parameters);
 
-    if(Result==false)
+    if(Result==-1)
     {
         strcpy(result_str, "Fail to initialize tcp lcd device.");
         d1printf("Fail to initialize tcp lcd device.");
     }
     else
     {
-        globalConnStatus=true;
+        globalConnStatus=1;
         gLcdInitData.sizeY=size_y;
         gLcdInitData.sizeX=size_x;
 
@@ -401,11 +401,11 @@ DLL_EXPORT(LCDS_WORD) DISPLAYDLL_ReadKey(void)
 
 //Function: DISPLAYDLL_SetBacklight
 //
-//Parameters: LightOn : boolean
+//Parameters: LightOn : intean
 //
 //Result: none
 //
-//Function description: First parameter is an 8 bit boolean that tells the DLL
+//Function description: First parameter is an 8 bit intean that tells the DLL
 //whether to turn the backlighting on or off.
 
 DLL_EXPORT(void) DISPLAYDLL_SetBacklight(LCDS_BOOL light_on)
@@ -458,7 +458,7 @@ DLL_EXPORT(void) DISPLAYDLL_PowerResume(void)
 
 //Function: DISPLAYDLL_SetGPO
 //
-//Parameters: GPO : byte; GPOOn : boolean
+//Parameters: GPO : byte; GPOOn : intean
 //
 //Result: none
 //
@@ -485,13 +485,13 @@ DLL_EXPORT(void) DISPLAYDLL_SetFan(LCDS_BYTE t1,LCDS_BYTE t2)
     d1printf("Call DISPLAYDLL_ReadKey");
 }
 
-bool ReInitLcd(void)
+int ReInitLcd(void)
 {
-    LCDS_BOOL res=FALSE;
+    LCDS_BOOL res=-1;
     DISPLAYDLL_Init(gLcdInitData.sizeX,gLcdInitData.sizeY,gLcdInitData.paramStr,&res);
     if(!res)
     {
-        return false;
+        return -1;
     }
     for(int i=0; i<8; i++)
     {
@@ -509,7 +509,7 @@ bool ReInitLcd(void)
     DISPLAYDLL_SetBrightness(gLcdInitData.brightnessLevel);
 
 
-    return true;
+    return 1;
 
 }
 
@@ -530,7 +530,7 @@ VOID CALLBACK DeamonProc(
     return;
 }
 
-extern "C" BOOL WINAPI DllMain(
+BOOL WINAPI DllMain(
     HINSTANCE hinstDLL,
     DWORD fdwReason,
     LPVOID lpvReserved

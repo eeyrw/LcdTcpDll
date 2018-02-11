@@ -2,7 +2,6 @@
 #define TCP_H_INCLUDED
 #include <stdint.h>
 
-#pragma  comment(lib,"ws2_32.lib")
 
 
 extern int TcpInit(uint32_t ipAddr,uint16_t portNum);

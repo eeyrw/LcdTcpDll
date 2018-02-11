@@ -1,6 +1,6 @@
 #include "debug.h"
 
-#ifdef DEBUG_LEVEL_1_EN||DEBUG_LEVEL_2_EN
+#if defined(DEBUG_LEVEL_1_EN)||defined(DEBUG_LEVEL_2_EN)
 
 void WINAPI DebugString(LPCSTR format, ...)
 {

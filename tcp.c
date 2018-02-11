@@ -3,11 +3,9 @@
 #include "debug.h"
 #include "tcp.h"
 
-#pragma  comment(lib,"ws2_32.lib")
-
 
 SOCKET sclient;
-	sockaddr_in serAddr;
+SOCKADDR_IN serAddr;
 
 
 int TcpInit(uint32_t ipAddr,uint16_t portNum)
@@ -29,7 +27,7 @@ int TcpInit(uint32_t ipAddr,uint16_t portNum)
     serAddr.sin_family = AF_INET;
 	serAddr.sin_port = htons(portNum);
 	serAddr.sin_addr.S_un.S_addr = ipAddr;
-	if (connect(sclient, (sockaddr *)&serAddr, sizeof(serAddr)) == SOCKET_ERROR)
+	if (connect(sclient, (SOCKADDR *)&serAddr, sizeof(serAddr)) == SOCKET_ERROR)
 	{
 		d1printf("connect error !");
 		closesocket(sclient);
