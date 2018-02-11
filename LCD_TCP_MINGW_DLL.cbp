@@ -48,12 +48,12 @@
 		<Unit filename="LCDS_Driver.H" />
 		<Unit filename="LCDS_Driver.cpp" />
 		<Unit filename="LCDS_Driver.def" />
-		<Unit filename="Socket.cpp" />
 		<Unit filename="Socket.h" />
-		<Unit filename="SocketApp.cpp" />
 		<Unit filename="SocketApp.h" />
 		<Unit filename="debug.h" />
 		<Unit filename="debug_output.cpp" />
+		<Unit filename="tcp.cpp" />
+		<Unit filename="tcp.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
