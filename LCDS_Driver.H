@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #ifndef DLL_EXPORT
-#define DLL_EXPORT(type) extern "C" __declspec(dllexport) type __stdcall
+#define DLL_EXPORT(type)  __declspec(dllexport) type __stdcall
 #endif
 
 typedef uint8_t  LCDS_BYTE;

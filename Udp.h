@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 
-#pragma comment(lib, "ws2_32.lib")
+//#pragma comment(lib, "ws2_32.lib")
 
 int UdpInit(uint32_t u32Ip,uint32_t port);
 int SendUdpData(char* data,int len);

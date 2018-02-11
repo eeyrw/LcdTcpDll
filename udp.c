@@ -1,10 +1,11 @@
 #include "udp.h"
 #include <winsock2.h>
+#include "debug.h"
 
 
 SOCKET sclient;
 
-sockaddr_in sin;
+SOCKADDR_IN sc;
 int len_of_sin;
 
  uint32_t GetIP_U32(int IP0,int IP1,int IP2,int IP3)
@@ -16,6 +17,7 @@ int len_of_sin;
     pu8_Addr[1]=IP1;
     pu8_Addr[2]=IP2;
     pu8_Addr[3]=IP3;
+    d1printf("Target IP: %d.%d.%d.%d",pu8_Addr[0],pu8_Addr[1],pu8_Addr[2],pu8_Addr[3]);
 
     return u32_IP;
 
@@ -30,10 +32,10 @@ int UdpInit(uint32_t u32Ip,uint32_t port)
     }
     sclient = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-    sin.sin_family = AF_INET;
-    sin.sin_port = htons(port);
-    sin.sin_addr.S_un.S_addr = u32Ip;
-    len_of_sin = sizeof(sin);
+    sc.sin_family = AF_INET;
+    sc.sin_port = htons(port);
+    sc.sin_addr.S_un.S_addr = u32Ip;
+    len_of_sin = sizeof(sc);
 
     return 1;
 }
@@ -42,15 +44,24 @@ int UdpInit(uint32_t u32Ip,uint32_t port)
 int SendUdpData(char* data,int length)
 {
 
-    return sendto(sclient, data, length, 0, (sockaddr *)&sin, len_of_sin);
+    int sendLen;
+    sendLen=sendto(sclient, data, length, 0, (SOCKADDR *)&sc, len_of_sin);
+
 
 //    char recvData[255];
-//    int ret = recvfrom(sclient, recvData, 255, 0, (sockaddr *)&sin, &len);
+//    int ret = recvfrom(sclient, recvData, 255, 0, (sockaddr *)&sc, &len);
 //    if(ret > 0)
 //    {
 //        recvData[ret] = 0x00;
 //        printf(recvData);
+d1printf("SendLen = %d\n", sendLen);
 //    }
+if(sendLen < 0)
+    {
+        int error = WSAGetLastError();
+        d1printf("error = %d\n", error);
+    }
+    return sendLen;
 
 }
 

@@ -1,2 +1,5 @@
 *.o
 *.dll
+/Release/
+/LCD_UDP_MINGW_DLL/Release/
+/.vs/
