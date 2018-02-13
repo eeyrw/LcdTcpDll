@@ -1,6 +1,6 @@
 # The display driver plugin for LCD Smartie
 
-This driver plugin is a DLL 
+This driver plugin is a DLL i
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTkxMDA4NzQ1MV19
+eyJoaXN0b3J5IjpbLTEyMzcxMDkyOTZdfQ==
 -->
