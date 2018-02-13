@@ -6,7 +6,7 @@ You may build it with MSVC or mingw32. I create a project file with IDE CodeBloc
 ## Use the plugin
 It's fairly simple. Copy the dll to `LCD_SMARTIE_ROOT\displays` and set IP address and port of your display.
 ![LCD Smartie setting demo](https://picasaweb.google.com/107384983838237380474/6521878153860292481#6521878154250877698 "LCD Smartie setting demo")
-If you are failed to run LCD Smartie you could edit `LCD_SMARTIE_ROOT\config.in` and 
+If you are failed to run LCD Smartie you could edit `LCD_SMARTIE_ROOT\config.in` and add 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTg0ODY4NzkxMV19
+eyJoaXN0b3J5IjpbLTgzMDQwOTYyNF19
 -->
