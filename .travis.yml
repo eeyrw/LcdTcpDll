@@ -1,6 +1,5 @@
 language: C
 install:
-  - sudo add-apt-repository --yes ppa:tobydox/mingw-x-precise            # < MinGW
   - sudo apt-get update -qq
   - uname -m
   - sudo apt-get install -y cloog-isl mingw32
