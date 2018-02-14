@@ -3,8 +3,7 @@ install:
   - sudo apt-get update -qq
   - uname -m
   - sudo apt-get install -y cloog-isl mingw32
-  - sudo apt-get install -y mingw32-x-binutils mingw32-x-gcc mingw32-x-runtime
-  - export MINGW=/opt/mingw$BITSIZE
+  - export MINGW=/opt/mingw32
   - export PATH=$MINGW/bin:$PATH
   - export CC=i686-w64-mingw32-gcc
   - export CXX=i686-w64-mingw32-g++
