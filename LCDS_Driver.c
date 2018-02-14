@@ -59,7 +59,10 @@ uint32_t portNum;
 #define CMD_LCD_SETCURSOR 0x06
 #define CMD_LCD_CUSTOMCHAR 0x07
 #define CMD_LCD_WRITECMD 0x08
-#define CMD_LCD_CLOSE 0x09
+#define CMD_ECHO 0x09
+#define CMD_GET_VER_INFO 0x0A
+#define CMD_LCD_DE_INIT 0x0B
+#define CMD_ENTER_BOOT 0x19
 
 #define OFFEST_CMD_DATA 3
 
@@ -375,7 +378,7 @@ DLL_EXPORT(void) DISPLAYDLL_Done(void)
 {
     d1printf("Call DISPLAYDLL_Done!");
     uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_CLOSE;
+    cmdBuf[0]=CMD_LCD_DE_INIT;
     SendCmdData(1);
 
 }
