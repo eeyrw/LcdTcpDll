@@ -1,23 +1,14 @@
-language: c   
-  matrix:
-include:
-  # cross-compile using mingw
-  - compiler: ": w64"
-    env: PLATFORM="mingw32" ARCH="x86_64" BITSIZE=64 HOST="x86_64"
-  - compiler: ": w32"
-    env: PLATFORM="mingw32" ARCH="x86" BITSIZE=32 HOST="i686"
-
+language: C
 install:
   - sudo add-apt-repository --yes ppa:tobydox/mingw-x-precise            # < MinGW
   - sudo apt-get update -qq
   - uname -m
   - sudo apt-get install -y cloog-isl mingw32
-  - if [ $BITSIZE == 32 ]; then sudo apt-get install -y mingw32-x-binutils mingw32-x-gcc mingw32-x-runtime; fi
-  - if [ $BITSIZE == 64 ]; then sudo apt-get install -y mingw64-x-binutils mingw64-x-gcc mingw64-x-runtime; fi
+  - sudo apt-get install -y mingw32-x-binutils mingw32-x-gcc mingw32-x-runtime
   - export MINGW=/opt/mingw$BITSIZE
   - export PATH=$MINGW/bin:$PATH
-  - export CC=$HOST-w64-mingw32-gcc
-  - export CXX=$HOST-w64-mingw32-g++
+  - export CC=i686-w64-mingw32-gcc
+  - export CXX=i686-w64-mingw32-g++
 
 script:
   - gcc -v 
