@@ -45,7 +45,7 @@ uint32_t portNum;
 // driver name
 #define DefaultParameters "192.168.1.134:2400"
 
-#define DRIVER_NAME "LCD Smartie DLL TCP mingw"
+#define DRIVER_NAME "LCD Smartie DLL TCP mDNS mingw"
 
 // usage
 #define USAGE "IP address like:192.168.1.134:2400"
@@ -126,15 +126,19 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
     sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
     u32_IP=GetIP_U32(IP_Array[0],IP_Array[1],IP_Array[2],IP_Array[3]);
 
-
-    if (!TcpInit(u32_IP,portNum)) //initalize winsocks
+    uint32_t u32_IP_resolved;
+    if(ResolveHostName("WIFI_LCD_STA.local",&u32_IP_resolved))
+    {
+        u32_IP=u32_IP_resolved;
+    }
+    if (TcpInit(u32_IP,portNum)<=0) //initalize winsocks
     {
         Result=-1; //failed
     }
 
 
 
-    SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
+
 
     d1printf("The Init para:%s",startup_parameters);
 
@@ -145,6 +149,7 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
     }
     else
     {
+        SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
         globalConnStatus=1;
         gLcdInitData.sizeY=size_y;
         gLcdInitData.sizeX=size_x;

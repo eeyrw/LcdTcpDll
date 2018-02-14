@@ -9,6 +9,7 @@ extern int TcpSendData(char* data,int length);
 extern int TcpRecvData(char* data,int maxLength);
 extern int TcpDeInit(void);
 extern  uint32_t GetIP_U32(int IP0,int IP1,int IP2,int IP3);
+extern int ResolveHostName(char* host_name,uint32_t *IP);
 
 
 #endif // TCP_H_INCLUDED
