@@ -21,6 +21,6 @@ install:
   - export CXX=$HOST-w64-mingw32-g++
 
 script:
-  - gcc -v
+  - gcc -v 
   - gcc -dumpmachine
   - make -f LCD_TCP_MINGW_DLL.cbp.mak -j2 VERBOSE=1
