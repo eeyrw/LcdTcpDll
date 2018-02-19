@@ -17,6 +17,7 @@ deploy:
   api_key:
     secure: uoilSOeVPESXx+ktCLAWAowsGQO2DY7Tf6Nw4SuMlfYeQcIGrcd4wVBA3EzLoEISqvMCH1DfimtWG3mS7H6jt6Adkb6InWwnYWUe46wP49Y4CoYg44vC0LOhpG60IzzEAjwDj4PbzbNumsd2dgmDc3cviPW6wg2RndO91LxfBRdBnWF0C2XPkMosO6oFB1kDLAC5M4n3rVePkcKmKroiafPISUEGSTMJbieC3DVMiNfwnyy5V8+DZE4W5e8SA7qFkJFYviAlSjG4PBJWWIve+02MuYNbbZst5Zp+uNil7Fc6nS+Bd/EVCDpaOg26IDFH0NofA/6HLMucMdYR5fQJHUkhr9/9T9V8UmUFy/+ZbOLt1ePv2P5GX1udI/wzv3Tvf8CSfCRUe1DxfG0W1knWjE94deK+1iEUfQqUh35aeZMX2nqi9s+fbToU1TfYotNrugW6QiFu/OUY8ljsU/9ZIO3vL35XD0rcUdqhwRpT+GHF3josocuy6Qw08laJ8SU9Fe2ZZDor5Fs+OFS1Q+BlFnXiRdtmY/vM65KWDeleosMh7F9IMlmlde0OipgBpmcsACNBpmu2x/jtECb5dJCsHloWEp808dB3fRDyuIwMoBTypWLOu82+5YFOxR9nRmAXf0r4Fxh+ZvZXrh0VOpcZ/+/9gWGPGI3FAgweWkX26d0=
   file: LCD_TCP_MINGW_DLL.zip
+  skip_cleanup: true
   on:
     tags: true
     repo: eeyrw/LcdTcpDll
