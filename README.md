@@ -5,7 +5,7 @@ This driver plugin is a native DLL under Windows. which support the display thro
 ## Build the plugin
 You can build it with MSVC or mingw32. I create a project file with IDE CodeBlocks. When you use MSVC, you should specify the .def file to generate correct DLL. When you use mingw, you should add -m32 to compiler flag and -static to linker flag. Because I discover that if you do not attach -static, mingw will dynamically link it's libgccXXX.dll, which is not expected.  
 ## Use the plugin
-If you have no purpose to build plugin, you can just download the release from GitHub release page
+If you have no purpose to build plugin, you can just download the release from GitHub release page.
 It's fairly simple. Copy the dll to `LCD_SMARTIE_ROOT\displays` and set IP address and port of your display.
 ![LCD Smartie setting demo](LCD%20Smartie%20setting%20demo.png)
 
@@ -15,5 +15,5 @@ If you are failed to run LCD Smartie you could edit `LCD_SMARTIE_ROOT\config.ini
     DisplayDLLParameters=192.168.1.134:2400
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0ODEzMDczODhdfQ==
+eyJoaXN0b3J5IjpbLTExNjU1NzY2MDZdfQ==
 -->
