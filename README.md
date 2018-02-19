@@ -1,5 +1,5 @@
 # The display driver plugin for LCD Smartie
-[![Build Status](https://travis-ci.org/eeyrw/LcdTcpDll.svg?branch=master)](https://travis-ci.org/eeyrw/LcdTcp) [![GitHub last commit](https://img.shields.io/github/last-commit/google/skia.svg)]() [![GitHub version](https://badge.fury.io/gh/eeyrw%2FLcdTcpDll.svg)](https://badge.fury.io/gh/eeyrw%2FLcdTcp)
+[![Build Status](https://travis-ci.org/eeyrw/LcdTcpDll.svg?branch=master)](https://travis-ci.org/eeyrw/LcdTcpDll) [![GitHub last commit](https://img.shields.io/github/last-commit/google/skia.svg)]() [![GitHub version](https://badge.fury.io/gh/eeyrw%2FLcdTcpDll.svg)](https://badge.fury.io/gh/eeyrw%2FLcdTcpDll)
 
 This driver plugin is a native DLL under Windows. which support the display through network ( such as Ethernet, WiFi, etc ). It works with ESP8266 based device ( https://github.com/eeyrw/LcdTcp ) by now.
 ## Build the plugin
@@ -17,5 +17,5 @@ If you are failed to run LCD Smartie you could edit `LCD_SMARTIE_ROOT\config.ini
     DisplayDLLParameters=192.168.1.134:2400
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjA5OTI3MDkxNF19
+eyJoaXN0b3J5IjpbLTEyMTg1NTQwMjBdfQ==
 -->
