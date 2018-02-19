@@ -1,7 +1,7 @@
 os: osx
 language: C
 before_install:
-  - brew update && brew bundle
+  - brew update
 install:
   - brew install mingw-w64
 
