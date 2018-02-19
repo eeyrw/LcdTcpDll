@@ -1,14 +1,10 @@
+os: osx
 language: C
+before_install:
+  - brew update && brew bundle
 install:
-  - sudo apt-get update -qq
-  - uname -m
-  - sudo apt-get install -y cloog-isl mingw32
-  - export MINGW=/opt/mingw32
-  - export PATH=$MINGW/bin:$PATH
-  - export CC=i686-w64-mingw32-gcc
-  - export CXX=i686-w64-mingw32-g++
+  - brew install mingw-w64
 
 script:
-  - gcc -v 
-  - gcc -dumpmachine
-  - make -f LCD_TCP_MINGW_DLL.cbp.mak -j2 VERBOSE=1
+  - chmod +x build.sh
+  - ./build.sh

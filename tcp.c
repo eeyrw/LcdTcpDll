@@ -1,5 +1,5 @@
-#include <WINSOCK2.H>
-#include <STDIO.H>
+#include <winsock2.h>
+#include <stdio.h>
 #include "debug.h"
 #include "tcp.h"
 
