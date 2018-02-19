@@ -1,10 +1,9 @@
 os: osx
 language: C
-before_install:
-  - brew update
 install:
   - brew install mingw-w64
 
 script:
   - chmod +x build.sh
   - ./build.sh
+  - ls
