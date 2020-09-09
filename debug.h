@@ -19,10 +19,6 @@
 #define d2printf(...)
 #endif
 
-
-
-
 void WINAPI DebugString(LPCSTR format, ...);
-
 
 #endif

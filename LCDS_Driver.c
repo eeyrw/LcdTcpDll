@@ -18,29 +18,24 @@ typedef struct _LCD_INIT_DATA
     unsigned char contrastLevel;
     unsigned char brightnessLevel;
 
-
-
 } LCD_INIT_DATA;
 
 VOID CALLBACK DeamonProc(
-    HWND hWnd, // handle of window for timer messages
-    UINT uMsg, // WM_TIMER message
+    HWND hWnd,    // handle of window for timer messages
+    UINT uMsg,    // WM_TIMER message
     UINT idEvent, // timer identifier
-    DWORD dwTime // current system time
+    DWORD dwTime  // current system time
 );
 
 static LCD_INIT_DATA gLcdInitData;
 
-static char result_str[80]="";
+static char result_str[80] = "";
 static unsigned char Buf[256];
 
-
-int globalConnStatus=-1;
+int globalConnStatus = -1;
 int IP_Array[4];
 uint32_t u32_IP;
 uint32_t portNum;
-
-
 
 // driver name
 #define DefaultParameters "192.168.1.134:2400"
@@ -49,7 +44,6 @@ uint32_t portNum;
 
 // usage
 #define USAGE "IP address like:192.168.1.134:2400"
-
 
 #define CMD_LCD_INIT 0x01
 #define CMD_LCD_SETBACKLIGHT 0x02
@@ -66,28 +60,24 @@ uint32_t portNum;
 
 #define OFFEST_CMD_DATA 3
 
-
-uint8_t* GetCmdDataPtr(void)
+uint8_t *GetCmdDataPtr(void)
 {
-    return (uint8_t*)(&Buf[OFFEST_CMD_DATA]);
+    return (uint8_t *)(&Buf[OFFEST_CMD_DATA]);
 }
-
-
-
 
 BOOL SendDataTcp(uint32_t len)
 {
-    int status=-1;
-    if((len<2)||(len>64))
+    int status = -1;
+    if ((len < 2) || (len > 64))
         return -1;
 
-    if(globalConnStatus)
+    if (globalConnStatus)
     {
-        status=TcpSendData((char*)Buf,len);
+        status = TcpSendData((char *)Buf, len);
     }
-    if(status<0)
+    if (status < 0)
     {
-        globalConnStatus=-1;
+        globalConnStatus = -1;
     }
 
     return status;
@@ -95,10 +85,10 @@ BOOL SendDataTcp(uint32_t len)
 
 int SendCmdData(uint32_t cmdDataLen)
 {
-    Buf[0]='n';
-    Buf[1]='w';
-    Buf[2]=cmdDataLen;
-    return SendDataTcp(cmdDataLen+OFFEST_CMD_DATA);
+    Buf[0] = 'n';
+    Buf[1] = 'w';
+    Buf[2] = cmdDataLen;
+    return SendDataTcp(cmdDataLen + OFFEST_CMD_DATA);
 }
 
 //Function: DISPLAYDLL_Init
@@ -116,52 +106,47 @@ int SendCmdData(uint32_t cmdDataLen)
 //driver to start a COM port that doesn't exist, pass back -1 to indicate the
 //start of the COM port failed).
 
-DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *startup_parameters,LCDS_BOOL *ok)
+DLL_EXPORT(char *)
+DISPLAYDLL_Init(LCDS_BYTE size_x, LCDS_BYTE size_y, char *startup_parameters, LCDS_BOOL *ok)
 {
 
-
-    BOOL Result=1;
+    BOOL Result = 1;
 
     strcpy(gLcdInitData.paramStr, startup_parameters);
-    sscanf(startup_parameters,"%d.%d.%d.%d:%ud",&IP_Array[0],&IP_Array[1],&IP_Array[2],&IP_Array[3],&portNum);
-    u32_IP=GetIP_U32(IP_Array[0],IP_Array[1],IP_Array[2],IP_Array[3]);
+    sscanf(startup_parameters, "%d.%d.%d.%d:%ud", &IP_Array[0], &IP_Array[1], &IP_Array[2], &IP_Array[3], &portNum);
+    u32_IP = GetIP_U32(IP_Array[0], IP_Array[1], IP_Array[2], IP_Array[3]);
 
-
-    if (!TcpInit(u32_IP,portNum)) //initalize winsocks
+    if (!TcpInit(u32_IP, portNum)) //initalize winsocks
     {
-        Result=-1; //failed
+        Result = -1; //failed
     }
-
-
 
     SetTimer(NULL, 0, 3000, (TIMERPROC)DeamonProc);
 
-    d1printf("The Init para:%s",startup_parameters);
+    d1printf("The Init para:%s", startup_parameters);
 
-    if(Result==-1)
+    if (Result == -1)
     {
         strcpy(result_str, "Fail to initialize tcp lcd device.");
         d1printf("Fail to initialize tcp lcd device.");
     }
     else
     {
-        globalConnStatus=1;
-        gLcdInitData.sizeY=size_y;
-        gLcdInitData.sizeX=size_x;
+        globalConnStatus = 1;
+        gLcdInitData.sizeY = size_y;
+        gLcdInitData.sizeX = size_x;
 
-        uint8_t* cmdBuf=GetCmdDataPtr();
-        cmdBuf[0]=CMD_LCD_INIT;
-        cmdBuf[1]=gLcdInitData.sizeX;
-        cmdBuf[2]=gLcdInitData.sizeY;
+        uint8_t *cmdBuf = GetCmdDataPtr();
+        cmdBuf[0] = CMD_LCD_INIT;
+        cmdBuf[1] = gLcdInitData.sizeX;
+        cmdBuf[2] = gLcdInitData.sizeY;
         Sleep(100);
         SendCmdData(3);
-        *ok=TRUE;
+        *ok = TRUE;
 
         d1printf("Success to open device!");
-        d1printf("LCD size:x=%d,y=%d.",gLcdInitData.sizeX,gLcdInitData.sizeY);
-
+        d1printf("LCD size:x=%d,y=%d.", gLcdInitData.sizeX, gLcdInitData.sizeY);
     }
-
 
     return result_str;
 }
@@ -174,7 +159,8 @@ DLL_EXPORT(char *) DISPLAYDLL_Init(LCDS_BYTE size_x,LCDS_BYTE size_y,char *start
 //! It's good practice to return a proper name and version for the driver so that
 //! it can be clearly identified (or else we would have to rely on the plugin name
 //! which is subject to modifications).
-DLL_EXPORT(char *) DISPLAYDLL_DriverName(void)
+DLL_EXPORT(char *)
+DISPLAYDLL_DriverName(void)
 {
     d1printf("Call DISPLAYDLL_DriverName");
     return DRIVER_NAME;
@@ -190,12 +176,12 @@ DLL_EXPORT(char *) DISPLAYDLL_DriverName(void)
 //The usage text describes the main plugin parameters and how they are assembled
 //in the parameter string (syntax indications).
 
-DLL_EXPORT(char *) DISPLAYDLL_Usage(void)
+DLL_EXPORT(char *)
+DISPLAYDLL_Usage(void)
 {
     d1printf("Call DISPLAYDLL_Usage");
     return USAGE;
 }
-
 
 //Function: DISPLAYDLL_DefaultParameters
 //
@@ -207,10 +193,11 @@ DLL_EXPORT(char *) DISPLAYDLL_Usage(void)
 //The default parameters string is used as parameter string after the driver
 //has been initialized.
 
-DLL_EXPORT(char *) DISPLAYDLL_DefaultParameters(void)
+DLL_EXPORT(char *)
+DISPLAYDLL_DefaultParameters(void)
 {
 
-    d1printf("Call DISPLAYDLL_ReadKey");
+    d1printf("Call DISPLAYDLL_DefaultParameters");
     return DefaultParameters;
 }
 
@@ -225,16 +212,17 @@ DLL_EXPORT(char *) DISPLAYDLL_DefaultParameters(void)
 //line on the display, it will call this command with 1,2 parameters. The
 //coordinates are "1" based, meaning the upper left corner is 1,1.
 
-DLL_EXPORT(void) DISPLAYDLL_SetPosition(LCDS_BYTE x,LCDS_BYTE y)
+DLL_EXPORT(void)
+DISPLAYDLL_SetPosition(LCDS_BYTE x, LCDS_BYTE y)
 {
-    uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_SETCURSOR;
-    cmdBuf[1]=x-1;
-    cmdBuf[2]=y-1;
-    gLcdInitData.curosrX=x;
-    gLcdInitData.curosrY=y;
+    uint8_t *cmdBuf = GetCmdDataPtr();
+    cmdBuf[0] = CMD_LCD_SETCURSOR;
+    cmdBuf[1] = x - 1;
+    cmdBuf[2] = y - 1;
+    gLcdInitData.curosrX = x;
+    gLcdInitData.curosrY = y;
     SendCmdData(3);
-    d1printf("SetPosition with x=%d,y=%d!",gLcdInitData.curosrX-1,gLcdInitData.curosrY-1);
+    d1printf("SetPosition with x=%d,y=%d!", gLcdInitData.curosrX - 1, gLcdInitData.curosrY - 1);
 }
 
 //Function: DISPLAYDLL_Write
@@ -247,22 +235,21 @@ DLL_EXPORT(void) DISPLAYDLL_SetPosition(LCDS_BYTE x,LCDS_BYTE y)
 //cursor position. This is the primary function LCD Smartie uses to write to
 //the display.
 
-DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
+DLL_EXPORT(void)
+DISPLAYDLL_Write(char *str)
 {
     int i;
 
-    uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_WRITEDATA;
+    uint8_t *cmdBuf = GetCmdDataPtr();
+    cmdBuf[0] = CMD_LCD_WRITEDATA;
 
-    for(i=0; i<gLcdInitData.sizeX; i++)
+    for (i = 0; i < gLcdInitData.sizeX; i++)
     {
-
 
         //if((*str)==0)
         //	break;
-        gLcdInitData.currentLcdContent[gLcdInitData.curosrY-1][i+gLcdInitData.curosrX-1]=(*str);
-        cmdBuf[i+2]=(*str);
-
+        gLcdInitData.currentLcdContent[gLcdInitData.curosrY - 1][i + gLcdInitData.curosrX - 1] = (*str);
+        cmdBuf[i + 2] = (*str);
 
         //switch (Buf[i+2]) {
         //case 176: Buf[i+2] = 0; break;
@@ -277,13 +264,10 @@ DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
         //}
 
         str++;
-
     }
-    d1printf("WriteData with %s",&cmdBuf[2]);
-    cmdBuf[1]=i;
-    SendCmdData(3+gLcdInitData.sizeX);
-
-
+    d1printf("WriteData with %s", &cmdBuf[2]);
+    cmdBuf[1] = i;
+    SendCmdData(3 + gLcdInitData.sizeX);
 }
 
 //Function: DISPLAYDLL_SetBrightness
@@ -297,14 +281,15 @@ DLL_EXPORT(void) DISPLAYDLL_Write(char *str)
 //128, values range from 0-255. 0 is dim, 255 is max brightness. Typically
 //only used on VFD displays.
 
-DLL_EXPORT(void) DISPLAYDLL_SetBrightness(LCDS_BYTE brightness)
+DLL_EXPORT(void)
+DISPLAYDLL_SetBrightness(LCDS_BYTE brightness)
 {
 
-    d1printf("SetBrightness with %d!",brightness);
-    gLcdInitData.brightnessLevel=brightness;
-    uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_SETBRIGHTNESS;
-    cmdBuf[1]=brightness;
+    d1printf("SetBrightness with %d!", brightness);
+    gLcdInitData.brightnessLevel = brightness;
+    uint8_t *cmdBuf = GetCmdDataPtr();
+    cmdBuf[0] = CMD_LCD_SETBRIGHTNESS;
+    cmdBuf[1] = brightness;
     SendCmdData(2);
 }
 
@@ -320,21 +305,21 @@ DLL_EXPORT(void) DISPLAYDLL_SetBrightness(LCDS_BYTE brightness)
 //Please note that when defining custom characters, only the least significant
 //five bits are effective (5x8 char).
 
-DLL_EXPORT(void) DISPLAYDLL_CustomChar(LCDS_BYTE chr,LCDS_BYTE *data)
+DLL_EXPORT(void)
+DISPLAYDLL_CustomChar(LCDS_BYTE chr, LCDS_BYTE *data)
 {
     int i;
-    uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_CUSTOMCHAR;
-    cmdBuf[1]=chr-1;
-    for(i=0; i<8; i++)
+    uint8_t *cmdBuf = GetCmdDataPtr();
+    cmdBuf[0] = CMD_LCD_CUSTOMCHAR;
+    cmdBuf[1] = chr - 1;
+    for (i = 0; i < 8; i++)
     {
 
-        gLcdInitData.customChar[cmdBuf[1]][i]=(*data);
-        cmdBuf[i+2]=(*data);
+        gLcdInitData.customChar[cmdBuf[1]][i] = (*data);
+        cmdBuf[i + 2] = (*data);
         data++;
     }
     SendCmdData(10);
-
 }
 
 //Function: DISPLAYDLL_CustomCharIndex
@@ -356,10 +341,11 @@ DLL_EXPORT(void) DISPLAYDLL_CustomChar(LCDS_BYTE chr,LCDS_BYTE *data)
 //LCD Smartie passing the default 176,158,131,132,133,134,135,136 characters for
 //custom CGRAM characters.
 
-DLL_EXPORT(LCDS_BYTE) DISPLAYDLL_CustomCharIndex(LCDS_BYTE index)
+DLL_EXPORT(LCDS_BYTE)
+DISPLAYDLL_CustomCharIndex(LCDS_BYTE index)
 {
 
-    d1printf("Call DISPLAYDLL_CustomCharIndex£º%d",index);
+    d1printf("Call DISPLAYDLL_CustomCharIndexï¿½ï¿½%d", index);
     --index;
     //if (0==index) index=8;
     return index;
@@ -374,13 +360,13 @@ DLL_EXPORT(LCDS_BYTE) DISPLAYDLL_CustomCharIndex(LCDS_BYTE index)
 //Function description: Called when LCD Smartie closes the display to enter
 //standby or close the application
 
-DLL_EXPORT(void) DISPLAYDLL_Done(void)
+DLL_EXPORT(void)
+DISPLAYDLL_Done(void)
 {
     d1printf("Call DISPLAYDLL_Done!");
-    uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_DE_INIT;
+    uint8_t *cmdBuf = GetCmdDataPtr();
+    cmdBuf[0] = CMD_LCD_DE_INIT;
     SendCmdData(1);
-
 }
 
 //Function: DISPLAYDLL_ReadKey
@@ -396,7 +382,8 @@ DLL_EXPORT(void) DISPLAYDLL_Done(void)
 //If the MSB is zero, LCD Smartie will assume the keyscan was successful, and
 //the data in the low byte will indicate the key.
 
-DLL_EXPORT(LCDS_WORD) DISPLAYDLL_ReadKey(void)
+DLL_EXPORT(LCDS_WORD)
+DISPLAYDLL_ReadKey(void)
 {
     d1printf("Call DISPLAYDLL_ReadKey");
     return 0;
@@ -411,14 +398,15 @@ DLL_EXPORT(LCDS_WORD) DISPLAYDLL_ReadKey(void)
 //Function description: First parameter is an 8 bit intean that tells the DLL
 //whether to turn the backlighting on or off.
 
-DLL_EXPORT(void) DISPLAYDLL_SetBacklight(LCDS_BOOL light_on)
+DLL_EXPORT(void)
+DISPLAYDLL_SetBacklight(LCDS_BOOL light_on)
 {
 
-    d1printf("SetBacklight with %d!",light_on);
-    gLcdInitData.backLightOnOff=light_on;
-    uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_SETBACKLIGHT;
-    cmdBuf[1]=light_on;
+    d1printf("SetBacklight with %d!", light_on);
+    gLcdInitData.backLightOnOff = light_on;
+    uint8_t *cmdBuf = GetCmdDataPtr();
+    cmdBuf[0] = CMD_LCD_SETBACKLIGHT;
+    cmdBuf[1] = light_on;
     SendCmdData(2);
 }
 
@@ -432,17 +420,17 @@ DLL_EXPORT(void) DISPLAYDLL_SetBacklight(LCDS_BOOL light_on)
 //LCD Smartie wants, as set by the user in the setup screen. Default value is
 //128, values range from 0-255. Typically only used on LCD displays.
 
-DLL_EXPORT(void) DISPLAYDLL_SetContrast(LCDS_BYTE contrast)
+DLL_EXPORT(void)
+DISPLAYDLL_SetContrast(LCDS_BYTE contrast)
 {
 
-    d1printf("SetContrast with %d!",contrast);
-    gLcdInitData.contrastLevel=contrast;
-    uint8_t* cmdBuf=GetCmdDataPtr();
-    cmdBuf[0]=CMD_LCD_SETCONTRAST;
-    cmdBuf[1]=contrast;
+    d1printf("SetContrast with %d!", contrast);
+    gLcdInitData.contrastLevel = contrast;
+    uint8_t *cmdBuf = GetCmdDataPtr();
+    cmdBuf[0] = CMD_LCD_SETCONTRAST;
+    cmdBuf[1] = contrast;
     SendCmdData(2);
 }
-
 
 //Function: DISPLAYDLL_PowerResume
 //
@@ -454,10 +442,10 @@ DLL_EXPORT(void) DISPLAYDLL_SetContrast(LCDS_BYTE contrast)
 //function is currently NOT implemented in LCD Smartie, and is there for future
 //expansion only.
 
-DLL_EXPORT(void) DISPLAYDLL_PowerResume(void)
+DLL_EXPORT(void)
+DISPLAYDLL_PowerResume(void)
 {
 }
-
 
 //Function: DISPLAYDLL_SetGPO
 //
@@ -469,9 +457,9 @@ DLL_EXPORT(void) DISPLAYDLL_PowerResume(void)
 //Matrix Orbital displays. First parameter is which GPO to set, second
 //parameter sets on or off state.
 
-DLL_EXPORT(void) DISPLAYDLL_SetGPO(LCDS_BYTE gpo,LCDS_BOOL gpo_on)
+DLL_EXPORT(void)
+DISPLAYDLL_SetGPO(LCDS_BYTE gpo, LCDS_BOOL gpo_on)
 {
-
 }
 
 //Function: DISPLAYDLL_SetFan
@@ -483,27 +471,28 @@ DLL_EXPORT(void) DISPLAYDLL_SetGPO(LCDS_BYTE gpo,LCDS_BOOL gpo_on)
 //Function description: Updates fan controller. Supported by Matrix Orbital
 //displays.
 
-DLL_EXPORT(void) DISPLAYDLL_SetFan(LCDS_BYTE t1,LCDS_BYTE t2)
+DLL_EXPORT(void)
+DISPLAYDLL_SetFan(LCDS_BYTE t1, LCDS_BYTE t2)
 {
     d1printf("Call DISPLAYDLL_ReadKey");
 }
 
 int ReInitLcd(void)
 {
-    LCDS_BOOL res=-1;
-    DISPLAYDLL_Init(gLcdInitData.sizeX,gLcdInitData.sizeY,gLcdInitData.paramStr,&res);
-    if(!res)
+    LCDS_BOOL res = -1;
+    DISPLAYDLL_Init(gLcdInitData.sizeX, gLcdInitData.sizeY, gLcdInitData.paramStr, &res);
+    if (!res)
     {
         return -1;
     }
-    for(int i=0; i<8; i++)
+    for (int i = 0; i < 8; i++)
     {
-        DISPLAYDLL_CustomChar(i+1,(LCDS_BYTE*)&gLcdInitData.customChar[i][0]);
+        DISPLAYDLL_CustomChar(i + 1, (LCDS_BYTE *)&gLcdInitData.customChar[i][0]);
     }
 
-    for(int i=0; i<gLcdInitData.sizeY; i++)
+    for (int i = 0; i < gLcdInitData.sizeY; i++)
     {
-        DISPLAYDLL_SetPosition(1,i+1);
+        DISPLAYDLL_SetPosition(1, i + 1);
         DISPLAYDLL_Write(&gLcdInitData.currentLcdContent[i][0]);
     }
 
@@ -511,23 +500,21 @@ int ReInitLcd(void)
     DISPLAYDLL_SetBacklight(gLcdInitData.backLightOnOff);
     DISPLAYDLL_SetBrightness(gLcdInitData.brightnessLevel);
 
-
     return 1;
-
 }
 
 VOID CALLBACK DeamonProc(
-    HWND hWnd, // handle of window for timer messages
-    UINT uMsg, // WM_TIMER message
+    HWND hWnd,    // handle of window for timer messages
+    UINT uMsg,    // WM_TIMER message
     UINT idEvent, // timer identifier
-    DWORD dwTime // current system time
+    DWORD dwTime  // current system time
 )
 {
-    if(globalConnStatus!=TRUE)
+    if (globalConnStatus != TRUE)
     {
-        if(ReInitLcd())
+        if (ReInitLcd())
         {
-            globalConnStatus=TRUE;
+            globalConnStatus = TRUE;
         }
     }
     return;
@@ -536,10 +523,9 @@ VOID CALLBACK DeamonProc(
 BOOL WINAPI DllMain(
     HINSTANCE hinstDLL,
     DWORD fdwReason,
-    LPVOID lpvReserved
-)
+    LPVOID lpvReserved)
 {
-    switch(fdwReason)
+    switch (fdwReason)
     {
     case 1:
         d1printf("DLL_PROCESS_ATTACH");
@@ -556,7 +542,4 @@ BOOL WINAPI DllMain(
     }
 
     return TRUE;
-
 }
-
-
